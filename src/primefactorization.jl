@@ -56,6 +56,15 @@ struct PrimeFactorization{T<:Unsigned} <: Integer
 end
 PrimeFactorization(powers::Vector{T}) where {T<:Unsigned} = PrimeFactorization{T}(powers, one(Int8))
 
+function Base.show(io::IO, a::PrimeFactorization)
+    show(io, typeof(a))
+    print(io, "(")
+    show(io, convert(BigInt, a))
+    print(io, ")")
+end
+Base.show(a::PrimeFactorization) = show(STDOUT, a)
+
+
 # define our own factor function, returning an instance of PrimeFactorization
 function primefactor(n::Integer)
     iszero(n) && return PrimeFactorization(UInt8[], zero(Int8))
@@ -115,7 +124,8 @@ function Base.convert(::Type{BigInt}, a::PrimeFactorization)
     A = big(a.sign)
     for (n, e) in enumerate(a.powers)
         if !iszero(e)
-            Base.GMP.MPZ.mul!(A, bigprime(n, e))
+            A *= bigprime(n, e)
+            # Base.GMP.MPZ.mul!(A, bigprime(n, e))
         end
     end
     return A
@@ -236,10 +246,13 @@ function sumlist!(list::Vector{<:PrimeFactorization}, ind = 1:length(list))
         # do sum
         s = big(0)
         for k in ind
-            Base.GMP.MPZ.add!(s, convert(BigInt, list[k]))
+            s += convert(BigInt, list[k])
+            # Base.GMP.MPZ.add!(s, convert(BigInt, list[k]))
         end
     end
-    return Base.GMP.MPZ.mul!(s, convert(BigInt, g))
+    s *= convert(BigInt, g)
+    return s
+    # return Base.GMP.MPZ.mul!(s, convert(BigInt, g))
 end
 
 # Mutating vector methods that also grow and shrink as required
