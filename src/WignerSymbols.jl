@@ -1,5 +1,5 @@
 module WignerSymbols
-export δ, Δ, clebschgordan, wigner3j, wigner6j, racahV, racahW
+export δ, Δ, clebschgordan, wigner3j, wigner6j, racahV, racahW, racahF, racahFmatrix
 
 include("primefactorization.jl")
 
@@ -212,6 +212,19 @@ function racahW(T::Type{<:AbstractFloat}, j₁, j₂, J, j₃, J₁₂, J₂₃)
     return isodd(convert(Int, j₁ + j₂ + j₃ + J)) ? -s : s
 end
 
+racahF(j₁, j₂, j₃, J, J₁₂, J₂₃) = sqrt((2*J₁₂+1)*(2*J₂₃+1))*racahW(j₁, j₂, J, j₃, J₁₂, J₂₃)
+
+function racahFmatrix(j₁, j₂, j₃, J)
+    J₁₂ = max(abs(j₁-j₂), abs(J-j₃)):min(j₁+j₂, J+j₃)
+    J₂₃ = max(abs(j₂-j₃), abs(J-j₁)):min(j₂+j₃, J+j₁)
+    F = Matrix{Float64}(length(J₁₂), length(J₂₃))
+    for (ind12, j12) in enumerate(J₁₂)
+        for (ind23, j23) in enumerate(J₂₃)
+            F[ind12, ind23] = racahF(j₁, j₂, j₃, J, j12, j23)
+        end
+    end
+    return J₁₂, J₂₃, F 
+end
 
 # squared triangle coefficient
 function Δ²(j₁, j₂, j₃)
